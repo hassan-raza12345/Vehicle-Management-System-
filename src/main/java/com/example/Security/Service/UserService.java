@@ -3,6 +3,7 @@ package com.example.Security.Service;
 import com.example.Security.Model.User;
 import com.example.Security.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,9 +13,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+
+    @Autowired
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
     private Optional<User> getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email);
@@ -46,7 +52,7 @@ public class UserService {
 
         return userRepository.save(currentUser);
     }
-    public User updateUserProfile(int id, User updatedUser) {
+    public User updateUserProfile(Long id, User updatedUser) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
 
@@ -74,7 +80,7 @@ public class UserService {
 
         return userRepository.findAll();
     }
-    public void deleteUserById(int id) {
+    public void deleteUserById(Long id) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("User not found with ID: " + id);
         }

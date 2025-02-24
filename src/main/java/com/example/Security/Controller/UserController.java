@@ -1,19 +1,28 @@
 package com.example.Security.Controller;
 import com.example.Security.Model.User;
+import com.example.Security.Repository.UserRepository;
 import com.example.Security.Service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@Component
 @RequestMapping("/api/profile")
+@RequiredArgsConstructor
 public class UserController
 {
-    //@autowaired
-    private UserService userService;
+
+    private final UserService userService;
+
+
+
+
 
     @GetMapping
     public ResponseEntity<User> getCurrentUserProfile() {
@@ -30,6 +39,11 @@ public class UserController
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
+    }
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUserById(id);
+        return ResponseEntity.noContent().build();
     }
 
 

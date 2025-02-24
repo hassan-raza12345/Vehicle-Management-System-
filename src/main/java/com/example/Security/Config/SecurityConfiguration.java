@@ -3,7 +3,6 @@ package com.example.Security.Config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -31,12 +30,11 @@ public class SecurityConfiguration {
 
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers("/api/v1/auth/register", "/api/v1/auth/authenticate","/api/v1/auth/refresh-token")
+                        req.requestMatchers("/api/v1/auth/register", "/api/v1/auth/authenticate","/api/v1/auth/refresh-token","/api/vehicle/{vehicleId}/changestatus")
                                 .permitAll()
-                               .requestMatchers("/api/hello").authenticated()
                                 .requestMatchers("/api/profile","/api/change-password").authenticated()
                                 .requestMatchers( "/api/purchase-requests/**").authenticated()
-                                .requestMatchers("/api/vehicle").authenticated()
+                                .requestMatchers("/api/vehicle/**").authenticated()
                                 .requestMatchers("/api/profile/all").hasRole("ADMIN")
                                 .anyRequest()
                                 .authenticated())
@@ -45,7 +43,7 @@ public class SecurityConfiguration {
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
-                        .logoutUrl("/api/v1/auth/logout")
+                        .logoutUrl("/logout")
                         .addLogoutHandler(logoutHandler)
                         .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext()
                         )

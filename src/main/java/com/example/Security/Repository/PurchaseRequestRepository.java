@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface PurchaseRequestRepository extends JpaRepository<PurchaseRequest, Long> {
-    List<PurchaseRequest> findByBuyer(User buyer);
-    List<PurchaseRequest> findByVehicle(VehicleListing vehicle);
+
+
 }

@@ -1,9 +1,11 @@
 package com.example.Security.Controller;
+import com.example.Security.Model.User;
 import com.example.Security.Model.VehicleListing;
 import com.example.Security.Model.VehicleStatus;
 import com.example.Security.Service.PurchaseRequestService;
 import com.example.Security.Service.VehicleListingService;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,11 +43,18 @@ public class VehicleListingController {
     public ResponseEntity<List<VehicleListing>> getForSaleVehicles() {
         return ResponseEntity.ok(listingService.getforSaleVehicle());
     }
-    @PutMapping("/api/vehicle/{vehicleId}/status")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteVehicle(@PathVariable Long id) {
+
+        listingService.deleteVehicle(id);
+        return ResponseEntity.noContent().build();
+    }
+    @PutMapping("/{vehicleId}/changestatus")
     public ResponseEntity<VehicleListing> updateVehicleStatus(
             @PathVariable Long vehicleId,
             @RequestParam VehicleStatus status,
             Principal principal) {
+        System.out.println(status);
         VehicleListing updatedVehicle = listingService.updateVehicleStatus(vehicleId, status, principal.getName());
         return ResponseEntity.ok(updatedVehicle);
     }
@@ -61,12 +70,7 @@ public class VehicleListingController {
 
         return ResponseEntity.ok(listingService.filterListings(make, model, minPrice, maxPrice));
     }
-        @PostMapping("/{vehicleId}/purchase-request")
-    public ResponseEntity<String> requestPurchase(@PathVariable Long vehicleId,
-                                                  @AuthenticationPrincipal UserDetails userDetails) {
-        purchaseRequestService.createPurchaseRequest(vehicleId, userDetails.getUsername());
-        return ResponseEntity.ok("✅ Purchase request submitted successfully.");
-    }
+
 
 
 

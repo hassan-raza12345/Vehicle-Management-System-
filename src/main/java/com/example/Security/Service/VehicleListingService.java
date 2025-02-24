@@ -22,11 +22,11 @@ public class VehicleListingService {
         User seller = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (seller.getRole() != Role.SELLER) {
-            throw new RuntimeException("Only sellers can create vehicle listings.");
-        }
+//        if (seller.getRole() != Role.SELLER) {
+//            throw new RuntimeException("Only sellers can create vehicle listings.");
+//        }
 
-        listing.setSeller(seller);
+
         return listingRepository.save(listing);
     }
 
@@ -59,11 +59,9 @@ public class VehicleListingService {
         if (!user.getRole().equals(Role.SELLER)) {
             throw new RuntimeException("Only users with the SELLER role can update vehicle status.");
         }
-        if (!vehicle.getSeller().equals(user)) {
-            throw new RuntimeException("You are not authorized to update this vehicle.");
-        }
+
         if (status != VehicleStatus.FOR_SALE && status != VehicleStatus.SOLD) {
-            throw new IllegalArgumentException("Invalid status. Allowed statuses: FOR_SALE, SOLD.");
+            throw new IllegalArgumentException("Invalid status. Allowed statuses: ,FOR_SALE, SOLD.");
         }
 
         vehicle.setStatus(status);
@@ -74,6 +72,13 @@ public class VehicleListingService {
             throw new RuntimeException("Vehicle not found with ID: " + id);
         }
         listingRepository.deleteById(id);
+    }
+    public void deleteVehicle(Long vehicleId) {
+        VehicleListing vehicle = listingRepository.findById(vehicleId)
+                .orElseThrow(() -> new RuntimeException("Vehicle with ID " + vehicleId + " not found"));
+
+
+        listingRepository.delete(vehicle);
     }
 
 }

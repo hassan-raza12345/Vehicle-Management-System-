@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,16 +32,26 @@ public class AuthenticationService
     private final TokenRepository tokenRepository;
 
     public AuthenticationResponse register(RegisterRequest request) {
+        byte[] profilePictureBytes = null;
+
+        MultipartFile profilePicture = request.getProfilePicture();
+        if (profilePicture != null && !profilePicture.isEmpty()) {
+            try {
+                profilePictureBytes = profilePicture.getBytes();
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to process profile picture", e);
+            }
+        }
         var user = User.builder()
                 .firstName(request.getFirstname())
                 .lastName(request.getLastname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
+                .profilePicture(profilePictureBytes)
                 .build();
         var savedUser = repository.save(user);
         var jwtToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
         revokeAllTokenByUser(savedUser);
         saveToken(jwtToken, user);
         return AuthenticationResponse.builder()
@@ -82,7 +93,7 @@ public class AuthenticationService
         } catch (AuthenticationException e) {
 
             e.printStackTrace();
-            throw new RuntimeException("Authentication failed", e);  // You can throw or handle this as you wish
+            throw new RuntimeException("Authentication failed", e);
         }
 
         var user = repository.findByEmail(request.getEmail())

@@ -10,6 +10,7 @@ import java.security.Key;
 import java.util.*;
 import java.util.function.Function;
 
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class JwtService {
     private final TokenRepository tokenRepository;
 
@@ -29,10 +31,7 @@ public class JwtService {
 
     private long refreshExpiration=86400000;
 
-    @Autowired
-    public JwtService(TokenRepository tokenRepository) {
-        this.tokenRepository = tokenRepository;
-    }
+
 
     public String generateToken(UserDetails user) {
 
@@ -43,7 +42,6 @@ public class JwtService {
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
-        System.out.println("Generated JWT Token: " + token);
         return token;
     }
     public String generateRefreshToken(
@@ -99,14 +97,12 @@ public class JwtService {
 
     public boolean isValid(String token, UserDetails user) {
         String username = extractUsername(token);
-        System.out.println("Extracted username: " + username);
-        System.out.println("UserDetails username: " + user.getUsername());
 
         boolean validToken = tokenRepository
                 .findByToken(token)
                 .map(t -> !t.isLoggedOut())
                 .orElse(false);
-        System.out.println("Token expired: " + isTokenExpired(token));
+       ;
 
 
         return (username.equals(user.getUsername())) && !isTokenExpired(token) && validToken;
