@@ -8,8 +8,6 @@ import com.example.Security.Repository.UserRepository;
 import com.example.Security.Repository.VehicleListingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
 import java.util.List;
 
 import static com.example.Security.Model.Role.SELLER;
@@ -25,49 +23,55 @@ public class PurchaseRequestService {
 
 
     public PurchaseRequest createPurchaseRequest(Long userID, Long vehicleID) {
-        User user = userRepository.findById(userID)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
         VehicleListing vehicle = vehicleListingRepository.findById(vehicleID)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found"));
+
         if (vehicle.getStatus() != VehicleStatus.FOR_SALE) {
-            throw new RuntimeException("Vehicle is not available for sale");
+            throw new RuntimeException("This vehicle is not available for sale.");
         }
 
+        User buyer = userRepository.findById(userID)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (vehicle.getOwner().getId().equals(userID)) {
+            throw new RuntimeException("You cannot request to purchase your own car.");
+        }
+
+        boolean requestExists = purchaseRequestRepository.existsByBuyerAndVehicle(buyer, vehicle);
+        if (requestExists) {
+            throw new RuntimeException("You have already requested to purchase this vehicle.");
+        }
 
         PurchaseRequest purchaseRequest = new PurchaseRequest();
-        purchaseRequest.setUser(user);
+        purchaseRequest.setBuyer(buyer);
         purchaseRequest.setVehicle(vehicle);
         purchaseRequest.setStatus(RequestStatus.PENDING);
-        purchaseRequest.setRequestDate(java.time.LocalDateTime.now());
-
-
-        vehicle.setStatus(VehicleStatus.PENDING);
-        vehicleListingRepository.save(vehicle);
 
         return purchaseRequestRepository.save(purchaseRequest);
     }
 
-    public void processPurchaseRequestDecision(Long requestID, RequestStatus decision) {
-
-        PurchaseRequest purchaseRequest = purchaseRequestRepository.findById(requestID)
+    public void     processPurchaseRequestDecision(Long requestID, RequestStatus status, Long sellerId) {
+        PurchaseRequest request = purchaseRequestRepository.findById(requestID)
                 .orElseThrow(() -> new RuntimeException("Purchase request not found"));
 
-        if (decision != RequestStatus.APPROVED && decision != RequestStatus.REJECTED) {
-            throw new RuntimeException("Invalid decision");
+
+        if (!request.getVehicle().getOwner().getId().equals(sellerId)) {
+            throw new RuntimeException("You are not authorized to make this decision.");
         }
 
-        purchaseRequest.setStatus(decision);
-        purchaseRequest.setApprovalDate(java.time.LocalDateTime.now());
-        purchaseRequestRepository.save(purchaseRequest);
+        if (request.getStatus() != RequestStatus.PENDING) {
+            throw new RuntimeException("This request has already been processed.");
+        }
 
-        VehicleListing vehicle = purchaseRequest.getVehicle();
-        if (decision == RequestStatus.APPROVED) {
+        request.setStatus(status);
+        purchaseRequestRepository.save(request);
+
+        if (status == RequestStatus.APPROVED)
+        {
+            VehicleListing vehicle = request.getVehicle();
             vehicle.setStatus(VehicleStatus.SOLD);
-        } else if (decision == RequestStatus.REJECTED) {
-            vehicle.setStatus(VehicleStatus.FOR_SALE);
+            vehicleListingRepository.save(vehicle);
         }
-        vehicleListingRepository.save(vehicle);
     }
 
     public PurchaseRequest updateRequestStatus(Long requestId, RequestStatus status) {
@@ -92,26 +96,13 @@ public class PurchaseRequestService {
 
     }
 
-    public Review addReview(Long purchaseRequestID, Long reviewerID, Long revieweeID, int rating, String comment) {
-        PurchaseRequest purchaseRequest = purchaseRequestRepository.findById(purchaseRequestID)
-                .orElseThrow(() -> new RuntimeException("Purchase request not found"));
-        User reviewer = userRepository.findById(reviewerID)
-                .orElseThrow(() -> new RuntimeException("Reviewer not found"));
-        User reviewee = userRepository.findById(revieweeID)
-                .orElseThrow(() -> new RuntimeException("Reviewee not found"));
-        Review review = new Review();
-        review.setRating(rating);
-        review.setComment(comment);
-        review.setReviewer(reviewer);
-        review.setReviewee(reviewee);
-        review.setPurchaseRequest(purchaseRequest);
 
-        return reviewRepository.save(review);
-    }
 
     public List<Review> getReviewsForPurchaseRequest(Long purchaseRequestID) {
         PurchaseRequest purchaseRequest = purchaseRequestRepository.findById(purchaseRequestID)
                 .orElseThrow(() -> new RuntimeException("Purchase request not found"));
         return purchaseRequest.getReviews();
     }
+
+
 }

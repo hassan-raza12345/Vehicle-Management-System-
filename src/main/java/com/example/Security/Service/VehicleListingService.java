@@ -21,12 +21,8 @@ public class VehicleListingService {
     public VehicleListing createListing(VehicleListing listing, String userEmail) {
         User seller = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-//        if (seller.getRole() != Role.SELLER) {
-//            throw new RuntimeException("Only sellers can create vehicle listings.");
-//        }
-
-
+        System.out.println(seller);
+        listing.setOwner(seller);
         return listingRepository.save(listing);
     }
 
@@ -56,9 +52,9 @@ public class VehicleListingService {
 
         VehicleListing vehicle = listingRepository.findById(vehicleId)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found"));
-        if (!user.getRole().equals(Role.SELLER)) {
-            throw new RuntimeException("Only users with the SELLER role can update vehicle status.");
-        }
+//        if (!user.getRole().equals(Role.SELLER)) {
+//            throw new RuntimeException("Only users with the SELLER role can update vehicle status.");
+//        }
 
         if (status != VehicleStatus.FOR_SALE && status != VehicleStatus.SOLD) {
             throw new IllegalArgumentException("Invalid status. Allowed statuses: ,FOR_SALE, SOLD.");

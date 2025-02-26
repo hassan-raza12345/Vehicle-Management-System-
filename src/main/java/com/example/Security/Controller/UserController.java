@@ -1,6 +1,7 @@
 package com.example.Security.Controller;
 import com.example.Security.Model.User;
 import com.example.Security.Repository.UserRepository;
+import com.example.Security.Service.ReviewService;
 import com.example.Security.Service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +14,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Component
-@RequestMapping("/api/profile")
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController
 {
 
     private final UserService userService;
+    private final ReviewService reviewService;
 
 
 
@@ -46,5 +48,13 @@ public class UserController
         return ResponseEntity.noContent().build();
     }
 
+
+    // 📊 Get average rating for a user as a seller
+    @GetMapping("/{id}/sellerrating")
+    public ResponseEntity<Double> getSellerRating(@PathVariable Long id ){
+        System.out.println("Fetching seller rating for user ID: " + id);
+        double sellerRating = reviewService.getAverageRatingAsSeller(id);
+        return ResponseEntity.ok(sellerRating);
+    }
 
 }

@@ -1,6 +1,8 @@
 package com.example.Security.Service;
 
+import com.example.Security.Model.Review;
 import com.example.Security.Model.User;
+import com.example.Security.Repository.ReviewRepository;
 import com.example.Security.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +15,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final ReviewRepository reviewRepository;
 
-    @Autowired
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+
 
     private Optional<User> getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -86,4 +87,5 @@ public class UserService {
         }
         userRepository.deleteById(id);
     }
+
 }

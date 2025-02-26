@@ -1,8 +1,12 @@
 package com.example.Security.Controller;
+import com.example.Security.Model.RequestStatus;
 import com.example.Security.Model.User;
 import com.example.Security.Model.VehicleListing;
 import com.example.Security.Model.VehicleStatus;
+import com.example.Security.Repository.UserRepository;
 import com.example.Security.Service.PurchaseRequestService;
+import com.example.Security.Service.ReviewService;
+import com.example.Security.Service.UserService;
 import com.example.Security.Service.VehicleListingService;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
@@ -21,7 +25,8 @@ import java.util.List;
 public class VehicleListingController {
 
     private final VehicleListingService listingService;
-    private final PurchaseRequestService purchaseRequestService;
+ private final ReviewService reviewService;
+
 
 
     @PostMapping("/create")
@@ -29,6 +34,12 @@ public class VehicleListingController {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(listingService.createListing(listing, email));
     }
+
+
+
+
+
+
 
     @GetMapping
     public ResponseEntity<List<VehicleListing>> getAllListings() {
@@ -71,8 +82,7 @@ public class VehicleListingController {
         return ResponseEntity.ok(listingService.filterListings(make, model, minPrice, maxPrice));
     }
 
-
-
+    // 📊 Get average rating for a user as a seller
 
 
 

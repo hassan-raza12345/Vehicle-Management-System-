@@ -32,9 +32,11 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(req ->
                         req.requestMatchers("/api/v1/auth/register", "/api/v1/auth/authenticate","/api/v1/auth/refresh-token","/api/vehicle/{vehicleId}/changestatus")
                                 .permitAll()
-                                .requestMatchers("/api/profile","/api/change-password").authenticated()
+                                .requestMatchers("/api/user","/api/change-password").authenticated()
+
                                 .requestMatchers( "/api/purchase-requests/**").authenticated()
-                                .requestMatchers("/api/vehicle/**").authenticated()
+
+                                .requestMatchers("/api/vehicle/**","/api/users/**").authenticated()
                                 .requestMatchers("/api/profile/all").hasRole("ADMIN")
                                 .anyRequest()
                                 .authenticated())

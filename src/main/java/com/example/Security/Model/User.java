@@ -26,6 +26,7 @@ public class User implements UserDetails {
 
     private String firstName;
     private String lastName;
+    @JsonIgnore
     private String password;
 
     @Column(unique = true, nullable = false)
@@ -33,8 +34,10 @@ public class User implements UserDetails {
     @Lob
     @Basic(fetch = FetchType.EAGER)
     @Column(name = "profile_picture")
+    @JsonIgnore
     private byte[] profilePicture;
     @Enumerated(EnumType.STRING)
+    @JsonIgnore
     private Role role;
     @OneToMany(mappedBy = "user")
     @JsonIgnore
@@ -83,7 +86,7 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+     @JsonIgnore
+    @OneToMany(mappedBy = "buyer", cascade = CascadeType.ALL)
     private List<PurchaseRequest> purchaseRequests;
 }

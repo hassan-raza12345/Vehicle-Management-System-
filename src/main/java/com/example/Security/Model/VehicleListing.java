@@ -1,6 +1,8 @@
 package com.example.Security.Model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -25,7 +27,10 @@ public class VehicleListing {
     @Enumerated(EnumType.STRING)
     private VehicleStatus status ;
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<PurchaseRequest> purchaseRequests;
-
+    @ManyToOne
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
 
 }

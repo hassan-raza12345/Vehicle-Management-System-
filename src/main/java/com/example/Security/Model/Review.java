@@ -22,7 +22,7 @@ public class Review {
     private User reviewee;
 
     @ManyToOne
-    @JoinColumn(name = "purchaseRequestID", nullable = false)
+    @JoinColumn(name = "purchase_request_id", nullable = false)
     private PurchaseRequest purchaseRequest;
 
     public void setRating(int rating) {

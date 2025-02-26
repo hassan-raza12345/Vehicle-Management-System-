@@ -3,8 +3,14 @@ package com.example.Security.Controller;
 import com.example.Security.Model.PurchaseRequest;
 import com.example.Security.Model.RequestStatus;
 import com.example.Security.Model.Review;
+import com.example.Security.Model.User;
+import com.example.Security.Repository.ReviewRepository;
+import com.example.Security.Repository.UserRepository;
 import com.example.Security.Service.PurchaseRequestService;
+import com.example.Security.Service.ReviewService;
+
 import lombok.AllArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,37 +22,53 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/purchase-requests")
 @AllArgsConstructor
+
 public class PurchaseRequestController {
 
     private final PurchaseRequestService purchaseRequestService;
+    private final UserRepository userRepository;
+    private final ReviewService reviewService;
+
     @PostMapping
-    public ResponseEntity<?> createPurchaseRequest(@RequestParam Long userID, @RequestParam Long vehicleID) {
+    public ResponseEntity<?> createPurchaseRequest(
+            @RequestParam Long vehicleID,
+            @AuthenticationPrincipal UserDetails userDetails)
+    {
         try {
-            PurchaseRequest purchaseRequest = purchaseRequestService.createPurchaseRequest(userID, vehicleID);
-            return ResponseEntity.ok().body("Purchase request created successfully. Request ID: " + purchaseRequest.getRequestID());
+            String username = userDetails.getUsername();
+            User buyer = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            PurchaseRequest request = purchaseRequestService.createPurchaseRequest(buyer.getId(), vehicleID);
+            return ResponseEntity.ok("Purchase request created successfully. Request ID: " + request.getRequestID());
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
 
     @PutMapping("/decision")
     public ResponseEntity<?> processPurchaseRequestDecision(
             @RequestParam Long requestID,
-            @RequestParam RequestStatus status) {
+            @RequestParam RequestStatus status,
+            @AuthenticationPrincipal UserDetails userDetails) {
         try {
+            String email = userDetails.getUsername();
+            User seller = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Seller not found"));
 
+            purchaseRequestService.processPurchaseRequestDecision(requestID, status, seller.getId());
 
-            purchaseRequestService.processPurchaseRequestDecision(requestID, status);
-            String message = status == RequestStatus.APPROVED
-                    ? "Purchase request approved successfully"
-                    : "Purchase request rejected successfully";
+            String message = (status == RequestStatus.APPROVED)
+                    ? "Purchase request approved successfully."
+                    : "Purchase request rejected successfully.";
+
             return ResponseEntity.ok().body(message);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Invalid decision");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     @GetMapping
     public ResponseEntity<List<PurchaseRequest>> getAllPurchaseRequests() {
         List<PurchaseRequest> purchaseRequests = purchaseRequestService.getAllPurchaseRequests();
@@ -71,14 +93,22 @@ public class PurchaseRequestController {
         return ResponseEntity.ok().body("Purchase request deleted successfully");
     }
     @PostMapping("/{id}/reviews")
-    public ResponseEntity<Review> addReview(
-            @PathVariable Long id,
-            @RequestParam Long reviewerID,
-            @RequestParam Long revieweeID,
+    public ResponseEntity<?> createReview(
+            @PathVariable("id") Long purchaseRequestId,
             @RequestParam int rating,
-            @RequestParam(required = false) String comment) {
-        Review review = purchaseRequestService.addReview(id, reviewerID, revieweeID, rating, comment);
-        return ResponseEntity.ok(review);
+            @RequestParam(required = false) String comment,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        if (rating < 1 || rating > 5)
+        {
+            return ResponseEntity.badRequest().body("Rating must be between 1 and 5.");
+        }
+
+        User reviewer = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Reviewer not found"));
+
+        reviewService.createReview(purchaseRequestId, reviewer, rating, comment);
+        return ResponseEntity.ok("Review submitted successfully.");
     }
 
     @GetMapping("/{id}/reviews")
