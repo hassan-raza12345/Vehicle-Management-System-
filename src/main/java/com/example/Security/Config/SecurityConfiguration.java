@@ -30,7 +30,7 @@ public class SecurityConfiguration {
 
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers("/api/v1/auth/register", "/api/v1/auth/authenticate","/api/v1/auth/refresh-token","/api/vehicle/{vehicleId}/changestatus")
+                        req.requestMatchers("/api/v1/auth/register", "/api/v1/auth/authenticate","/api/v1/auth/login","/api/vehicle/{vehicleId}/changestatus")
                                 .permitAll()
                                 .requestMatchers("/api/user","/api/change-password").authenticated()
 

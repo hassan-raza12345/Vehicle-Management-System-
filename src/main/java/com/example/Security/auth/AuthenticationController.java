@@ -2,9 +2,13 @@
 package com.example.Security.auth;
 import com.example.Security.Model.Role;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -22,9 +26,8 @@ public class AuthenticationController {
             @RequestParam("role") Role role,
             @RequestParam(value = "profilePicture", required = false) MultipartFile profilePicture
     ) {
-        System.out.println("Received password: " + password);
+
         RegisterRequest request = new RegisterRequest(firstName, lastName, email, password, role, profilePicture);
-        System.out.println("DTO password: " + request.getPassword());
         return ResponseEntity.ok(service.register(request));
     }
 
@@ -36,6 +39,27 @@ public class AuthenticationController {
         return ResponseEntity.ok(service.authenticate(request));
     }
 
+
+    @PostMapping("/login")
+    public ResponseEntity<?> authenticates(@RequestBody AuthenticationRequest request) {
+        try {
+            AuthenticationResponse authResponse = service.authenticate(request);
+
+            ResponseCookie jwtCookie = ResponseCookie.from("jwtToken", authResponse.getAccessToken())
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/")
+                    .maxAge(3600)
+                    .build();
+
+            return ResponseEntity.ok()
+                    .header("Set-Cookie", jwtCookie.toString())
+                    .body(Map.of("message", "Authentication successful"));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Authentication failed: " + ex.getMessage()));
+        }
+    }
 
 
 

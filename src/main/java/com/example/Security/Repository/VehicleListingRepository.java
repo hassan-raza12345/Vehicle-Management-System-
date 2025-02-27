@@ -1,6 +1,4 @@
 package com.example.Security.Repository;
-
-import com.example.Security.Model.User;
 import com.example.Security.Model.VehicleListing;
 import com.example.Security.Model.VehicleStatus;
 import org.springframework.data.jpa.repository.JpaRepository;

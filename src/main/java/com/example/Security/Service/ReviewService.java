@@ -1,6 +1,4 @@
 package com.example.Security.Service;
-
-import com.example.Security.Exception.NoReviewsFoundException;
 import com.example.Security.Exception.RatingCalculationException;
 import com.example.Security.Model.PurchaseRequest;
 import com.example.Security.Model.RequestStatus;

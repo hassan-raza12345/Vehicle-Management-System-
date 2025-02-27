@@ -1,16 +1,16 @@
 package com.example.Security.Service;
 
-import com.example.Security.Exception.UnauthorizedAccessException;
+
 import com.example.Security.Model.*;
 import com.example.Security.Repository.PurchaseRequestRepository;
 import com.example.Security.Repository.ReviewRepository;
 import com.example.Security.Repository.UserRepository;
 import com.example.Security.Repository.VehicleListingRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import java.util.List;
-
-import static com.example.Security.Model.Role.SELLER;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +19,6 @@ public class PurchaseRequestService {
     private final PurchaseRequestRepository purchaseRequestRepository;
     private final UserRepository userRepository;
     private final VehicleListingRepository vehicleListingRepository;
-    private final ReviewRepository reviewRepository;
 
 
     public PurchaseRequest createPurchaseRequest(Long userID, Long vehicleID) {
@@ -81,9 +80,16 @@ public class PurchaseRequestService {
         return purchaseRequestRepository.save(request);
     }
 
-    public List<PurchaseRequest> getAllPurchaseRequests() {
-        return purchaseRequestRepository.findAll();
+    public List<PurchaseRequest> getAllPurchaseRequests(Long vehicleId, User user) {
+        VehicleListing vehicle = vehicleListingRepository.findById(vehicleId)
+                .orElseThrow(() -> new EntityNotFoundException("Vehicle with ID " + vehicleId + " not found."));
+
+        if (!vehicle.getOwner().getId().equals(user.getId())) {
+            throw new AccessDeniedException("You are not authorized to view purchase requests for this vehicle.");
+        }
+        return purchaseRequestRepository.findByVehicleId(vehicleId);
     }
+
 
 
     public PurchaseRequest getPurchaseRequestById(Long id) {
@@ -91,10 +97,20 @@ public class PurchaseRequestService {
                 .orElseThrow(() -> new RuntimeException("Purchase request not found"));
     }
 
-    public void deletePurchaseRequest(Long id) {
-        purchaseRequestRepository.deleteById(id);
+    public void deletePurchaseRequest(Long id, User user) {
+        PurchaseRequest request = purchaseRequestRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Purchase request not found with ID: " + id));
 
+        boolean isBuyer = request.getBuyer().getId().equals(user.getId());
+        boolean isSeller = request.getVehicle().getOwner().getId().equals(user.getId());
+
+        if (!isBuyer && !isSeller) {
+            throw new AccessDeniedException("You are not authorized to delete this purchase request.");
+        }
+
+        purchaseRequestRepository.deleteById(id);
     }
+
 
 
 

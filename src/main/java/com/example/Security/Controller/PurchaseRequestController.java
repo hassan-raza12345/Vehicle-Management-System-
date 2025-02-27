@@ -4,25 +4,20 @@ import com.example.Security.Model.PurchaseRequest;
 import com.example.Security.Model.RequestStatus;
 import com.example.Security.Model.Review;
 import com.example.Security.Model.User;
-import com.example.Security.Repository.ReviewRepository;
 import com.example.Security.Repository.UserRepository;
 import com.example.Security.Service.PurchaseRequestService;
 import com.example.Security.Service.ReviewService;
-
-import lombok.AllArgsConstructor;
-
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/purchase-requests")
-@AllArgsConstructor
-
+@RequiredArgsConstructor
 public class PurchaseRequestController {
 
     private final PurchaseRequestService purchaseRequestService;
@@ -69,29 +64,64 @@ public class PurchaseRequestController {
         }
     }
 
-    @GetMapping
-    public ResponseEntity<List<PurchaseRequest>> getAllPurchaseRequests() {
-        List<PurchaseRequest> purchaseRequests = purchaseRequestService.getAllPurchaseRequests();
-        return ResponseEntity.ok(purchaseRequests);
+    @GetMapping("/{vehicleId}/all")
+    public ResponseEntity<?> getAllPurchaseRequests(
+            @PathVariable Long vehicleId,
+            @AuthenticationPrincipal User user) {
+        try {
+            List<PurchaseRequest> purchaseRequests = purchaseRequestService.getAllPurchaseRequests(vehicleId, user);
+
+            if (purchaseRequests.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("No purchase requests found for vehicle ID: " + vehicleId);
+            }
+
+            return ResponseEntity.ok(purchaseRequests);
+        }
+        catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while fetching purchase requests: " + ex.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PurchaseRequest> getPurchaseRequestById(@PathVariable Long id) {
-        PurchaseRequest purchaseRequest = purchaseRequestService.getPurchaseRequestById(id);
-        return ResponseEntity.ok(purchaseRequest);
+    public ResponseEntity<?> getPurchaseRequestById(@PathVariable Long id) {
+        try {
+            PurchaseRequest purchaseRequest = purchaseRequestService.getPurchaseRequestById(id);
+
+            return ResponseEntity.ok(purchaseRequest);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while fetching the purchase request: " + ex.getMessage());
+        }
     }
 
     @PutMapping("/update-status/{requestId}")
-    public ResponseEntity<PurchaseRequest> updateRequestStatus(@PathVariable Long requestId,
-                                                               @RequestParam RequestStatus status) {
-        PurchaseRequest updatedRequest = purchaseRequestService.updateRequestStatus(requestId, status);
-        return ResponseEntity.ok(updatedRequest);
+    public ResponseEntity<?> updateRequestStatus(@PathVariable Long requestId,
+                                                 @RequestParam RequestStatus status) {
+        try {
+            PurchaseRequest updatedRequest = purchaseRequestService.updateRequestStatus(requestId, status);
+
+            return ResponseEntity.ok(updatedRequest);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while updating purchase request status: " + ex.getMessage());
+        }
     }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletePurchaseRequest(@PathVariable Long id) {
-        purchaseRequestService.deletePurchaseRequest(id);
-        return ResponseEntity.ok().body("Purchase request deleted successfully");
+    public ResponseEntity<?> deletePurchaseRequest(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+        try {
+            purchaseRequestService.deletePurchaseRequest(id, user);
+            return ResponseEntity.ok("Purchase request deleted successfully.");
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while deleting the purchase request: " + ex.getMessage());
+        }
     }
+
     @PostMapping("/{id}/reviews")
     public ResponseEntity<?> createReview(
             @PathVariable("id") Long purchaseRequestId,

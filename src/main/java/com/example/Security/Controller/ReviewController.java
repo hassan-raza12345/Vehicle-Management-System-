@@ -52,16 +52,28 @@ public class ReviewController {
     }
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<?> deleteReview(@PathVariable Long reviewId, @AuthenticationPrincipal User user) {
-        reviewService.deleteReview(reviewId, user);
-        return ResponseEntity.ok("Review deleted successfully.");
+        try {
+             reviewService.deleteReview(reviewId, user);
+            return ResponseEntity.ok("Review deleted successfully.");
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while deleting the review: " + ex.getMessage());
+        }
     }
+
 
     @PutMapping("/{reviewId}")
     public ResponseEntity<?> updateReview(
             @PathVariable Long reviewId,
             @RequestBody Review review,
             @AuthenticationPrincipal User user) {
-        reviewService.updateReview(reviewId, review, user);
-        return ResponseEntity.ok("Review updated successfully.");
+        try {
+                       reviewService.updateReview(reviewId, review, user);
+
+            return ResponseEntity.ok("Review updated successfully.");
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while updating the review: " + ex.getMessage());
+        }
     }
 }

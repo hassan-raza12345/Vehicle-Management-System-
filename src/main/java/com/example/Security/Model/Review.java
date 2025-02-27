@@ -1,5 +1,6 @@
 package com.example.Security.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -15,14 +16,17 @@ public class Review {
 
     @ManyToOne
     @JoinColumn(name = "reviewerID", nullable = false)
+    @JsonIgnore
     private User reviewer;
 
     @ManyToOne
     @JoinColumn(name = "revieweeID", nullable = false)
+    @JsonIgnore
     private User reviewee;
 
     @ManyToOne
     @JoinColumn(name = "purchase_request_id", nullable = false)
+    @JsonIgnore
     private PurchaseRequest purchaseRequest;
 
     public void setRating(int rating) {

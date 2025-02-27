@@ -1,21 +1,12 @@
 package com.example.Security.Controller;
-import com.example.Security.Model.RequestStatus;
-import com.example.Security.Model.User;
+
 import com.example.Security.Model.VehicleListing;
 import com.example.Security.Model.VehicleStatus;
-import com.example.Security.Repository.UserRepository;
-import com.example.Security.Service.PurchaseRequestService;
-import com.example.Security.Service.ReviewService;
-import com.example.Security.Service.UserService;
 import com.example.Security.Service.VehicleListingService;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
 import java.security.Principal;
 import java.util.List;
 
@@ -25,20 +16,12 @@ import java.util.List;
 public class VehicleListingController {
 
     private final VehicleListingService listingService;
- private final ReviewService reviewService;
-
-
 
     @PostMapping("/create")
     public ResponseEntity<VehicleListing> createListing(@RequestBody VehicleListing listing) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(listingService.createListing(listing, email));
     }
-
-
-
-
-
 
 
     @GetMapping
@@ -82,7 +65,6 @@ public class VehicleListingController {
         return ResponseEntity.ok(listingService.filterListings(make, model, minPrice, maxPrice));
     }
 
-    // 📊 Get average rating for a user as a seller
 
 
 

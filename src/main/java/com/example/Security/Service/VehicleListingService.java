@@ -1,6 +1,5 @@
 package com.example.Security.Service;
 
-import com.example.Security.Model.Role;
 import com.example.Security.Model.User;
 import com.example.Security.Model.VehicleListing;
 import com.example.Security.Model.VehicleStatus;
@@ -8,7 +7,6 @@ import com.example.Security.Repository.UserRepository;
 import com.example.Security.Repository.VehicleListingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -21,7 +19,6 @@ public class VehicleListingService {
     public VehicleListing createListing(VehicleListing listing, String userEmail) {
         User seller = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        System.out.println(seller);
         listing.setOwner(seller);
         return listingRepository.save(listing);
     }
